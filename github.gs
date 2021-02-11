@@ -1,26 +1,29 @@
 const properties = PropertiesService.getScriptProperties();
-const githubClientId     = properties.getProperty('githubClientId');
-const githubClientSecret = properties.getProperty('githubClientSecret');
-const githubAccessToken = properties.getProperty('githubAccessToken');
-const githubUserName = properties.getProperty('githubUserName');
-const githubRepository = properties.getProperty('githubRepository');
-const name = properties.getProperty('name');
-const email = properties.getProperty('email');
+const githubClientId      = properties.getProperty('githubClientId');
+const githubClientSecret  = properties.getProperty('githubClientSecret');
+const githubAccessToken   = properties.getProperty('githubAccessToken');
+const githubUserName      = properties.getProperty('githubUserName');
+const githubRepository    = properties.getProperty('githubRepository');
+const name                = properties.getProperty('name');
+const email               = properties.getProperty('email');
 
-const siteUrl = properties.getProperty('siteUrl');
-const folderIdSpecial = properties.getProperty('folderIdSpecial');
-const folderIdGeneral = properties.getProperty('folderIdGeneral');
+const siteUrl             = properties.getProperty('siteUrl');
+const folderIdSpecial     = properties.getProperty('folderIdSpecial');
+const folderIdGeneral     = properties.getProperty('folderIdGeneral');
 const homePath = '';
 
 const githubOption = { "name": name, "email": email };
 let github = new GitHubAPI.GitHubAPI(githubUserName, githubRepository, githubAccessToken, githubOption);
 let branch = github.getBranch("Netlify");
 let pTree = github.getTree(branch['commit']['commit']['tree']['sha']);
+//自動生成，日付と更新した科目を入力
 let commitMessage = "";
+//手動入力，自動更新でない場合に入力して実行することでコミットメッセージに追加される。基本は空文字列
+let commitMessage2 = "";
 
 //index.htmlを更新
 function updateIndexPage(){
-  commitMessage = Utilities.formatDate(new Date(), "JST", "yyyy-MM-dd") + 'トップ' + commitMessage;
+  commitMessage = Utilities.formatDate(new Date(), "JST", "yyyy-MM-dd") + 'トップ' + commitMessage2;
   let htmlTemplate = HtmlService.createTemplateFromFile('index');
   const html = htmlTemplate.evaluate().getContent();
   const blob = github.createBlob(html);
@@ -43,7 +46,7 @@ function updateIndexPage(){
 
 //upload.htmlを更新
 function updateUploadPage(){
-  commitMessage = Utilities.formatDate(new Date(), "JST", "yyyy-MM-dd") + 'アップロード' + commitMessage;
+  commitMessage = Utilities.formatDate(new Date(), "JST", "yyyy-MM-dd") + 'アップロード' + commitMessage2;
   let htmlTemplate = HtmlService.createTemplateFromFile('upload');
   const html = htmlTemplate.evaluate().getContent();
   const blob = github.createBlob(html);
@@ -71,7 +74,7 @@ function updatePagesSpecial(){
   makeDescendantPages(rootFolder, "index.html");
 
   if(commitMessage != ""){
-    commitMessage = Utilities.formatDate(new Date(), "JST", "yyyy-MM-dd") + '専門' + commitMessage;
+    commitMessage = Utilities.formatDate(new Date(), "JST", "yyyy-MM-dd") + '専門' + commitMessage2 + commitMessage;
     const data = {
       'tree': pTree['tree']
     };
@@ -90,7 +93,7 @@ function updatePagesGeneral(){
   makeDescendantPages(rootFolder, "index.html");
   
   if(commitMessage != ""){
-    commitMessage = Utilities.formatDate(new Date(), "JST", "yyyy-MM-dd") + '全学' + commitMessage;
+    commitMessage = Utilities.formatDate(new Date(), "JST", "yyyy-MM-dd") + '全学' + commitMessage2 + commitMessage;
     const data = {
       'tree': pTree['tree']
     };
@@ -117,19 +120,20 @@ function makeDescendantPages(folder, parentPage){
 ////////////////////////////////////////////////////////////////////////////////////////////
 function updatePage(folder, parentPage){
   const folderName = folder.getName();
-  const page = folderName.replace(/\(/g,"").replace(/\)/g,"") + '.html';
+  const page = folderName.replace(/[\(\)]/g,"") + '.html';
   
   const myData = getFilesIdIn(folder);
   const now = new Date().getTime();
   
-  if(now - myData["updated"] < 365*24*60*60*1000){  //25時間以内ならページ更新
+  if(now - myData["updated"] < 25*60*60*1000){  //25時間以内ならページ更新
     const contents = makeContents(folder, myData);
     
     let htmlTemplate = HtmlService.createTemplateFromFile('pages');
+    htmlTemplate.pageUrl     = page;
     htmlTemplate.parentUrl   = parentPage;
     htmlTemplate.parentTitle = parentPage.substr(0,parentPage.length-5);
-    htmlTemplate.content = contents;
-    htmlTemplate.title = folderName;
+    htmlTemplate.content     = contents;
+    htmlTemplate.title       = folderName;
     const html = htmlTemplate.evaluate().getContent();
     
     const blob = github.createBlob(html);
@@ -149,7 +153,7 @@ function updatePage(folder, parentPage){
 function makeContents(rootFolder, myData){
   let contents = "";
   
-  const rootFolderName = rootFolder.getName().replace(/\(/g,"").replace(/\)/g,"");
+  const rootFolderName = rootFolder.getName().replace(/[\(\)]/g,"");
   const pageUrl = siteUrl + rootFolderName + '.html';  //現在表示しているページのurl
   
   //tweetbottunUrl1,2の間にファイル名を入れてtweetボタンのテキストに
@@ -157,8 +161,9 @@ function makeContents(rootFolder, myData){
                       + rootFolderName
                       + "&ref_src=twsrc%5Etfw&text=KU1025で";
   const tweetbottunUrl2 = "を解いたよ&url=" + encodeURI(encodeURI(pageUrl)) + "&tw_p=tweetbutton&ref_src=twsrc%5Etfw";
+  //encodeURI(encodeURI())ではなくencodeURIComponent()がただしいのでは？
   
-  for(let i=0; myData["folder"][i] != undefined; i++){
+  for(let i in myData["folder"]){
     
     let folderId = JSON.stringify(myData["folder"][i]["fileId"]);
     let folderName = JSON.stringify(myData["folder"][i]["name"]);
@@ -183,22 +188,22 @@ function makeContents(rootFolder, myData){
 
 //targetFolder内のfile,folderの情報を取得
 function getFilesIdIn(targetFolder){
-  var result = {folder: [], file: [], updated: targetFolder.getLastUpdated().getTime()};
+  let result = {folder: [], file: [], updated: targetFolder.getLastUpdated().getTime()};
   
   //targetFolder直下の全fileのnameとidを取得
-  var files = targetFolder.getFiles();
+  const files = targetFolder.getFiles();
   while(files.hasNext()){
-    var file = files.next();
+    const file = files.next();
     result["file"].push({name: file.getName(),fileId: file.getId()});
     result["updated"] = (result["updated"] > file.getLastUpdated().getTime())? result["updated"] : file.getLastUpdated().getTime();
   }
   
   //targetFolder直下の全folderのnameとidを取得
-  var child_folders = targetFolder.getFolders();
-  while(child_folders.hasNext()){
-    var child_folder = child_folders.next();
-    result["folder"].push({name: child_folder.getName(), fileId: child_folder.getId()});
-    result["updated"] = (result["updated"] > child_folder.getLastUpdated().getTime())? result["updated"] : child_folder.getLastUpdated().getTime();
+  const childFolders = targetFolder.getFolders();
+  while(childFolders.hasNext()){
+    const childFolder = childFolders.next();
+    result["folder"].push({name: childFolder.getName(), fileId: childFolder.getId()});
+    result["updated"] = (result["updated"] > childFolder.getLastUpdated().getTime())? result["updated"] : childFolder.getLastUpdated().getTime();
   }
   
   result["file"].sort(function(a,b){ //filename降順でソート

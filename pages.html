@@ -6,21 +6,26 @@
 <?let list = content;?>
 <html lang="ja">
 <html>
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <base target="_top">
-  <title>KU1025-<?=pageTitle?></title>
+  <title>KU1025-
+    <?=pageTitle?>
+  </title>
   <?!= include('css'); ?>
-  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>  
+  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script>
   <meta name="twitter:card" content="summary" />
   <meta name="twitter:site" content="@1025kuexam" />
   <meta name="twitter:creator" content="@1025kuexam" />
   <meta property="og:url" content="https://ku1025.netlify.app/<?=pageurl?>" />
   <meta property="og:title" content="<?=pageTitle?>-KU1025" />
   <meta property="og:description" content="京大工学部物理工学科生のための過去問サイト。過去問募集中！" />
-  <meta property="og:image" content="https://drive.google.com/uc?export=view&id=1d7PXXzJU4iWdBhSqGJ_piNlcVLmzlYbg&usp=sharing" />
+  <meta property="og:image"
+    content="https://drive.google.com/uc?export=view&id=1d7PXXzJU4iWdBhSqGJ_piNlcVLmzlYbg&usp=sharing" />
 </head>
+
 <body>
   <div class="body">
     <div>
@@ -34,7 +39,9 @@
       </div>
     </div>
     <header>
-      <a id="title" href="index.html">KU1025</a><a href="upload.html"><font color="red">試験問題募集中</font></a>
+      <a id="title" href="index.html">KU1025</a><a href="upload.html">
+        <font color="red">試験問題募集中</font>
+      </a>
     </header>
     <div>
       <div style="height:20px;background-color:#ffffff">
@@ -44,23 +51,29 @@
     </div>
     <p class="description">
       このサイトは，京都大学工学部物理工学科の過去問サイトです．<br>
-      過去問の投稿は<a href="http://ku1025.bitballoon.com/upload.html">こちら</a>から，ご意見などは 1025.kuexam[at]gmail.com に送ってください．([at]は@に変更してください)
+      過去問の投稿は<a href="https://ku1025.netlify.app/upload.html">こちら</a>から，ご意見などは 1025.kuexam[at]gmail.com
+      に送ってください．([at]は@に変更してください)
       <script src="https://kampa.me/t/pha.js"></script>
     </p>
     <div class="container">
       <div class="side">
       </div>
       <div class="contents">
-        <a href="<?=parenturl?>"><?=parenttitle?>に戻る</a>
+        <a href="<?=parenturl?>">
+          <?=parenttitle?>に戻る
+        </a>
         <ul>
-        <?!=list//生成済みのリストを取得?>
+          <?!=list//生成済みのリストを取得?>
         </ul>
         <!--<a href="https://drive.google.com/drive/folders/</?!=rootFolderId?>">このフォルダを開く</a>-->
       </div>
-	  <a class="twitter-timeline" width="350px" height="500px" href="https://twitter.com/1025kuexam?ref_src=twsrc%5Etfw">Tweets by 1025kuexam</a>
+      <a class="twitter-timeline" width="350px" height="500px"
+        href="https://twitter.com/1025kuexam?ref_src=twsrc%5Etfw">Tweets by 1025kuexam</a>
     </div>
     <aside>
-      <a href="https://github.com/KU1025/KU1025onNetlify" target="_blank"><font color=#228b22>Google Apps Script of KU1025</font></a>
+      <a href="https://github.com/KU1025/KU1025onNetlify" target="_blank">
+        <font color=#228b22>Google Apps Script of KU1025</font>
+      </a>
     </aside>
     <div>
       <div style="height:3px;background-color:#228b22">
@@ -71,5 +84,6 @@
       </div>
     </div>
   </div>
-  </body>
+</body>
+
 </html>
